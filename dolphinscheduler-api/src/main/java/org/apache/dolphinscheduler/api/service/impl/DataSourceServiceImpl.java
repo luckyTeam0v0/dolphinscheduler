@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
@@ -399,8 +400,33 @@ public class DataSourceServiceImpl extends BaseServiceImpl implements DataSource
     }
 
     @Override
-    public Result<Object>  tablenames(int id, String tablename) {
-        return null;
+    public Result<Object> tablenames(int id, String tableName) {
+        Result<Object> result = new Result<>();
+        DataSource dataSource = dataSourceMapper.selectById(id);
+
+        if (dataSource == null || dataSource.getType() != DbType.HIVE) {
+            putMsg(result, Status.VERIFY_DATASOURCE_NAME_FAILURE);
+            return result;
+        }
+        ConnectionParam connectionParam = DatasourceUtil.buildConnectionParams(DbType.HIVE, dataSource.getConnectionParams());
+        try (Connection connection = DataSourceClientProvider.getInstance().getConnection(DbType.HIVE, connectionParam)) {
+            Statement statement = connection.createStatement();
+            String sql = "show tables";
+            ResultSet rs = statement.executeQuery(sql);
+            List<String> tableNameList = new ArrayList();
+            while (rs.next()) {
+                tableNameList.add(rs.getString(1));
+            }
+            if (StringUtils.isNotEmpty(tableName)) {
+                tableNameList.removeIf(s -> !s.contains(tableName));
+            }
+            putMsg(result, Status.SUCCESS);
+            result.setData(tableNameList);
+            return result;
+        } catch (SQLException e) {
+            logger.error("datasource test connection error, dbType:{}, connectionParam:{}, message:{}.", dataSource.getType().getDescp(), connectionParam, e.getMessage());
+            return new Result<>(Status.CONNECTION_TEST_FAILURE.getCode(), e.getMessage());
+        }
     }
 
     @Override
