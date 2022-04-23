@@ -95,6 +95,16 @@ public interface DataSourceService {
      */
     Result<Object> checkConnection(DbType type, ConnectionParam parameter);
 
+
+    /**
+     * check connection
+     *
+     * @param type      data source type
+     * @param parameter data source parameters
+     * @return true if connect successfully, otherwise false
+     */
+    Result<Object> execSql(DbType type, ConnectionParam parameter,String sql);
+
     /**
      * test connection
      *

@@ -37,6 +37,9 @@ import org.apache.dolphinscheduler.spi.enums.DbType;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -330,6 +333,42 @@ public class DataSourceServiceImpl extends BaseServiceImpl implements DataSource
         }
     }
 
+    @Override
+    public Result<Object> execSql(DbType type, ConnectionParam connectionParam, String sql) {
+        Result<Object> result = new Result<>();
+        try (Connection connection = DataSourceClientProvider.getInstance().getConnection(type, connectionParam)) {
+            if (connection == null) {
+                putMsg(result, Status.CONNECTION_TEST_FAILURE);
+                return result;
+            }
+
+            Statement st = connection.createStatement();
+            ResultSet rs = st.executeQuery(sql);
+
+            ResultSetMetaData md = rs.getMetaData(); // 获得结果集结构信息,元数据
+
+            int columnCount = md.getColumnCount(); // 获得列数
+
+            List lists = new ArrayList();
+
+            while (rs.next()) {
+                Map rowData = new HashMap();
+                for (int i = 1; i <= columnCount; i++) {
+                    rowData.put(md.getColumnName(i), rs.getObject(i));
+                }
+                lists.add(rowData);
+            }
+            String jsonLists = JSONUtils.toJsonString(lists);
+
+            putMsg(result, Status.SUCCESS,jsonLists);
+            result.setData(lists);
+            return result;
+        } catch (Exception e) {
+            logger.error("datasource test connection error, dbType:{}, connectionParam:{}, message:{}.", type, connectionParam, e.getMessage());
+            return new Result<>(Status.CONNECTION_TEST_FAILURE.getCode(), e.getMessage());
+        }
+    }
+
     /**
      * test connection
      *
@@ -350,11 +389,13 @@ public class DataSourceServiceImpl extends BaseServiceImpl implements DataSource
     @Override
     public  Result<Object>  adhoc(int id, String sql) {
         DataSource dataSource = dataSourceMapper.selectById(id);
-        String conParams  = dataSource.getConnectionParams();
+        String datasourceParam  = dataSource.getConnectionParams();
         //TODO 获取JDBC参数  执行SQL
 
+        ConnectionParam connectionParam = DatasourceUtil.buildConnectionParams(dataSource.getType(), datasourceParam);
 
-        return new Result<>(id,conParams);
+        Result<Object> res = execSql(dataSource.getType(), connectionParam,sql);
+        return res;
     }
 
     @Override
