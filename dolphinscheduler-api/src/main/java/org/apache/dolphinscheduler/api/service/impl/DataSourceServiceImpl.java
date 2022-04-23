@@ -347,6 +347,26 @@ public class DataSourceServiceImpl extends BaseServiceImpl implements DataSource
         return checkConnection(dataSource.getType(), DatasourceUtil.buildConnectionParams(dataSource.getType(), dataSource.getConnectionParams()));
     }
 
+    @Override
+    public  Result<Object>  adhoc(int id, String sql) {
+        DataSource dataSource = dataSourceMapper.selectById(id);
+        String conParams  = dataSource.getConnectionParams();
+        //TODO 获取JDBC参数  执行SQL
+
+
+        return new Result<>(id,conParams);
+    }
+
+    @Override
+    public Result<Object>  tablenames(int id, String tablename) {
+        return null;
+    }
+
+    @Override
+    public Result<Object>  meta(int id, String tablename) {
+        return null;
+    }
+
     /**
      * delete datasource
      *

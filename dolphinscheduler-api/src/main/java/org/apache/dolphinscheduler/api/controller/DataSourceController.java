@@ -37,6 +37,7 @@ import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.CommonUtils;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
 import org.apache.dolphinscheduler.dao.entity.User;
+import org.apache.dolphinscheduler.plugin.datasource.api.datasource.AdhocDTO;
 import org.apache.dolphinscheduler.plugin.datasource.api.datasource.BaseDataSourceParamDTO;
 import org.apache.dolphinscheduler.plugin.datasource.api.utils.DatasourceUtil;
 import org.apache.dolphinscheduler.spi.datasource.ConnectionParam;
@@ -44,6 +45,7 @@ import org.apache.dolphinscheduler.spi.enums.DbType;
 
 import java.util.Map;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -234,6 +236,32 @@ public class DataSourceController extends BaseController {
                                  @PathVariable("id") int id) {
         return dataSourceService.connectionTest(id);
     }
+
+
+
+
+    /**
+     * adhoc
+     *
+     * @param loginUser login user
+     * @param id data source id
+     * @return connect result code
+     */
+    @ApiOperation(value = "adhoctest", notes = "CONNECT_DATA_SOURCE_ADHOC")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "id", value = "DATA_SOURCE_ID", required = true, dataType = "Int", example = "100")
+//    })
+    @PostMapping(value = "/adhoctest")
+    @ResponseStatus(HttpStatus.OK)
+//    @ApiException(CONNECTION_TEST_FAILURE)
+    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
+    public Result adhockTest(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                             @RequestBody AdhocDTO ad) {
+        return dataSourceService.adhoc(ad.getId(),ad.getSql());
+    }
+
+
+
 
     /**
      * delete datasource by id

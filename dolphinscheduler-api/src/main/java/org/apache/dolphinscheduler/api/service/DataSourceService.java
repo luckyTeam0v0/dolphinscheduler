@@ -23,6 +23,7 @@ import org.apache.dolphinscheduler.plugin.datasource.api.datasource.BaseDataSour
 import org.apache.dolphinscheduler.spi.datasource.ConnectionParam;
 import org.apache.dolphinscheduler.spi.enums.DbType;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -101,6 +102,40 @@ public interface DataSourceService {
      * @return connect result code
      */
     Result<Object> connectionTest(int id);
+
+
+    /**
+     * 即席查询
+     *
+     * @param id datasource id
+     * @param sql
+     * @return List<Object>
+     */
+    Result<Object>  adhoc(int id, String sql);
+
+
+
+    /**
+     * 表查询
+     *
+     * @param id datasource id
+     * @param tablename
+     * @return List<Object>
+     */
+    Result<Object>  tablenames(int id,String tablename);
+
+
+
+    /**
+     * meta数据查询
+     *
+     * @param id datasource id
+     * @param tablename
+     * @return List<Object>
+     */
+    Result<Object>  meta(int id,String tablename);
+
+
 
     /**
      * delete datasource
