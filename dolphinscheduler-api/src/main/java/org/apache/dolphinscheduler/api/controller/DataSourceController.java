@@ -45,7 +45,6 @@ import org.apache.dolphinscheduler.spi.enums.DbType;
 
 import java.util.Map;
 
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -260,6 +259,29 @@ public class DataSourceController extends BaseController {
         return dataSourceService.adhoc(ad.getId(),ad.getSql());
     }
 
+
+    /**
+     * query hive meta
+     *
+     * @param loginUser login user
+     * @param id data source id
+     * @param tableName table name
+     * @return hive meta
+     */
+    @ApiOperation(value = "queryHiveMeta", notes = "QUERY_HIVE_META_NOTES")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "DATA_SOURCE_ID", required = true, dataType = "Int", example = "2"),
+            @ApiImplicitParam(name = "tableName", value = "TABLE_NAME", required = true, dataType = "String")
+    })
+    @GetMapping(value = "/queryHiveMeta")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiException(QUERY_DATASOURCE_ERROR)
+    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
+    public Result meta(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                       @RequestParam("id") Integer id,
+                       @RequestParam("tableName") String tableName) {
+        return dataSourceService.meta(id, tableName);
+    }
 
 
 

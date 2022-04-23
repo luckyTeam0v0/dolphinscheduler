@@ -405,7 +405,27 @@ public class DataSourceServiceImpl extends BaseServiceImpl implements DataSource
 
     @Override
     public Result<Object>  meta(int id, String tablename) {
-        return null;
+        DataSource dataSource = dataSourceMapper.selectById(id);
+        if (dataSource == null) {
+            Result<Object> result = new Result<>();
+            putMsg(result, Status.RESOURCE_NOT_EXIST);
+            return result;
+        }
+
+        if(DbType.HIVE != dataSource.getType()){
+            Result<Object> result = new Result<>();
+            putMsg(result, Status.DATASOURCE_NOT_HIVE);
+            return result;
+        }
+
+        String datasourceParam  = dataSource.getConnectionParams();
+        ConnectionParam connectionParam = DatasourceUtil.buildConnectionParams(dataSource.getType(), datasourceParam);
+
+        BaseConnectionParam baseConnectionParam = (BaseConnectionParam) connectionParam;
+        String metaSql = String.format("desc formatted %s.%s", baseConnectionParam.getDatabase(), tablename);
+        Result<Object> result = execSql(dataSource.getType(), connectionParam, metaSql);
+        //TODO filter 过滤不需要元数据, 待定(owner, 表结构)
+        return result;
     }
 
     /**
