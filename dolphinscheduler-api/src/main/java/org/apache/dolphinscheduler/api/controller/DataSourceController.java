@@ -243,7 +243,7 @@ public class DataSourceController extends BaseController {
      * adhoc
      *
      * @param loginUser login user
-     * @param id data source id
+     * @param ad AdhocDTO id & SQL
      * @return connect result code
      */
     @ApiOperation(value = "adhoctest", notes = "CONNECT_DATA_SOURCE_ADHOC")
@@ -283,6 +283,25 @@ public class DataSourceController extends BaseController {
         return dataSourceService.meta(id, tableName);
     }
 
+    /**
+     * query tablename for dbId
+     *
+     * @param loginUser login user
+     * @param id        data source id
+     * @return connect result code
+     */
+    @ApiOperation(value = "tablenames", notes = "CONNECT_DATA_SOURCE_TABLENAMES")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "DATA_SOURCE_ID", required = true, dataType = "Int", example = "100"),
+            @ApiImplicitParam(name = "tableName", value = "TABLENAME", required = false, dataType = "String", example = "test")
+    })
+    @PostMapping(value = "/tablenames")
+    @ResponseStatus(HttpStatus.OK)
+    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
+    public Result tablenames(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                             @RequestParam(value = "id") int id, @RequestParam(value = "tableName", required = false, defaultValue = "") String tableName) {
+        return dataSourceService.tablenames(id, tableName);
+    }
 
 
     /**
